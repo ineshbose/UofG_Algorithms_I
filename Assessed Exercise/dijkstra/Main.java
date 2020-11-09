@@ -10,22 +10,25 @@ public class Main {
 		System.exit(0);
 	}
 
-	public static boolean difference(String word1, String word2, int desiredDiff){
+	public static int difference(String word1, String word2, int desiredDiff){
 
 		int shorter = Math.min(word1.length(), word2.length());
 		int longer = Math.max(word1.length(), word2.length());
 		int diffCount = longer - shorter;
+		int charDifference = 0;
 
 		for(int i = 0; i < shorter; i++){
 			if(word1.charAt(i) != word2.charAt(i)){
 				diffCount++;
 				if(diffCount > desiredDiff){
-					return false;
+					return -1;
 				}
+				int difference = (int) word2.charAt(i) - (int) word1.charAt(i);
+				charDifference += (difference > 0 ? difference : (difference*-1));
 			}
 		}
 
-		return diffCount == desiredDiff;
+		return charDifference;
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -46,6 +49,7 @@ public class Main {
 		catch(ArrayIndexOutOfBoundsException e){
 			terminate("usage: [file] start_word end_word ...\n");
 		}
+
 		LinkedList<String> dictionary = new LinkedList<String>();
 		try{
 			FileReader reader = new FileReader(inputFileName);
@@ -72,9 +76,10 @@ public class Main {
 				if(i.equals(j)){
 					break;
 				}
-				if(difference(i,j,1)){
-					G.getVertex(idx).addToAdjList(jdx);
-					G.getVertex(jdx).addToAdjList(idx);
+				int dist = difference(i,j,1);
+				if(dist > 0){
+					G.getVertex(idx).addToAdjList(jdx, dist);
+					G.getVertex(jdx).addToAdjList(idx, dist);
 				}
 				jdx++;
 			}
@@ -83,14 +88,16 @@ public class Main {
 
 		LinkedList<Vertex> path = G.getPath(dictionary.indexOf(word1),dictionary.indexOf(word2));
 		int transformations = path.size() - 1;
+		int weight = 0;
 		for(Vertex v : path){
-			System.out.print(dictionary.get(v.getIndex()) + ((path.indexOf(v) < transformations) ? " -> " : "\n"));
+			System.out.print(dictionary.get(v.getIndex()) + ((path.indexOf(v) < transformations) ? " -> " : ((weight = v.getDist()) > 0) ? "\n" : "?"));
 		}
 
-		System.out.println((!path.isEmpty() ? "\nTotal " + transformations + " transformations taken." : "Could not find a path from " + word1 + " to " + word2));
+		System.out.println((!path.isEmpty() ? "\nTotal " + transformations + " transformations taken.\nWeight: " + weight : "Could not find a path from " + word1 + " to " + word2));
 
 		long end = System.currentTimeMillis();
 		System.out.println("\nElapsed time: " + (end - start) + " milliseconds");
+
 	}
 
 }

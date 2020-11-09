@@ -30,17 +30,17 @@ public class Graph {
 		Vertex v1 = getVertex(n1);
 		Vertex v2 = getVertex(n2);
 
-		for (Vertex v : vertices) v.setVisited(false);
 		LinkedList<Vertex> queue = new LinkedList<Vertex>();
+		v1.setDist(0);
 		queue.add(v1);
-		v1.setVisited(true);
 		while(!queue.isEmpty()){
 			Vertex u = queue.remove();
 			for(AdjListNode node : u.getAdjList()){
 				Vertex w = getVertex(node.getVertexIndex());
-				if(!w.getVisited()){
-					w.setVisited(true);
+				int temp_dist = node.getVertexDist() + u.getDist();
+				if(temp_dist < w.getDist()){
 					w.setPredecessor(u);
+					w.setDist(temp_dist);
 					queue.add(w);
 				}
 			}
