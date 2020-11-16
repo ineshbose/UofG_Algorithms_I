@@ -47,7 +47,7 @@ public class Graph {
 		}
 
 		LinkedList<Vertex> path = new LinkedList<Vertex>();
-		for(Vertex v = v2; path.size() != this.numVertices; v = v.getPredecessor()){
+		for(Vertex v = v2; path.size() != this.numVertices && v != null; v = v.getPredecessor()){
 			path.add(v);
 			if(v.getIndex() == n1) break;
 		}

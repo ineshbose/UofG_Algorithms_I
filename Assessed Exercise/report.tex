@@ -1,0 +1,250 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{layout}
+\usepackage{minted}
+\newcommand{\code}[1]{\texttt{#1}}
+ 
+\title{Algorithmics I --  Assessed Exercise\\ \vspace{4mm} 
+Status and Implementation Reports}
+
+\author{\bf Inesh Bose}
+
+\date{}
+
+\begin{document}
+
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+
+\maketitle
+
+\vspace{0.5cm}
+
+\section*{Status report}
+
+The program compiles and runs successfully. No bugs or limitations have been found so far. The two programs are not written as packages and are independent of each other (both have \code{Main.java}).
+
+\vspace{0.5cm}
+
+\section*{Implementation report}
+Both implementations are extremely similar and have slight differences in few functions (aside from class attributes like \code{vertexDist} and \code{visited}). \\
+
+\noindent My logic here is that all vertices/nodes have index as the key instead of the actual word (\code{String}); that index can always be used to refer in the dictionary. This reduces a load from processing and basically keeps the dictionary only in \code{Main.java}; other files do not have to deal with it and hence remain simple. \\
+
+\noindent At first I would load a 2D array (\code{int}) to create the adjacency matrix, and then iterate through that to connect vertices. However, after refactoring, I construct the graph directly (removing one loop of complexity O($n^{2}$)) and since the matrix is symmetric, the final complexity for the construction would be O($\frac{1}{2}n^{2}$).
+
+\newpage
+
+\begin{minted}[tabsize=5,bgcolor=bg]{java}
+Graph G = new Graph(dictionary.size());
+int idx = 0;
+for(String i : dictionary){
+	int jdx = 0;
+	for(String j : dictionary){
+		if(i.equals(j)){
+			break;
+		}
+		
+		// For unweighted graph (wordladder)
+		if(difference(i,j,1)){
+			G.getVertex(idx).addToAdjList(jdx);
+			G.getVertex(jdx).addToAdjList(idx);
+		}
+		
+		// For weighted graph (dijkstra)
+		int dist = difference(i,j,1);
+		if(dist > 0){
+			G.getVertex(idx).addToAdjList(jdx, dist);
+			G.getVertex(jdx).addToAdjList(idx, dist);
+		}
+		
+		jdx++;
+	}
+	idx++;
+}
+\end{minted}
+
+\begin{itemize}
+\item[(a)] 
+Wordladder uses \textbf{\textit{breadth first search}} algorithm where a given node/vertex is taken as the start/root and all neighbour nodes are explored according to depth level.
+
+\begin{minted}[tabsize=5,bgcolor=bg]{java}
+LinkedList<Vertex> queue = new LinkedList<Vertex>();
+queue.add(v1);
+v1.setVisited(true);
+while(!queue.isEmpty()){
+	Vertex u = queue.remove();
+	for(AdjListNode node : u.getAdjList()){
+		Vertex w = getVertex(node.getVertexIndex());
+		if(!w.getVisited()){
+			w.setVisited(true);
+			w.setPredecessor(u);
+			queue.add(w);
+		}
+	}
+}
+\end{minted}
+
+\item[(b)]
+\textbf{\textit{Dijkstra's algorithm}} is similar to BFS algorithm; the difference is that weight is considered here.
+\begin{minted}[tabsize=5,bgcolor=bg]{java}
+LinkedList<Vertex> queue = new LinkedList<Vertex>();
+v1.setDist(0);
+queue.add(v1);
+while(!queue.isEmpty()){
+	Vertex u = queue.remove();
+	for(AdjListNode node : u.getAdjList()){
+		Vertex w = getVertex(node.getVertexIndex());
+		int temp_dist= node.getVertexDist() + u.getDist();
+		if(temp_dist < w.getDist()){
+			w.setPredecessor(u);
+			w.setDist(temp_dist);
+			queue.add(w);
+		}
+	}
+}
+\end{minted}
+
+\end{itemize}
+
+\noindent Afterwards, the predecessor for each vertex (starting from final word) was added to a list and the reverse of this list would be returned as the path.
+
+\vspace{0.5cm}
+
+\section*{Empirical results}
+
+The following are results of the two programs based on the dictionary \code{words5.txt} and listed according to \code{testdata.txt}. The times include reading the file, constructing the graph and the algorithm itself.
+
+\vspace{0.2cm}
+
+\subsection*{wordladder}
+
+\vspace{0.2cm}
+
+\begin{verbatim}
+print -> paint
+
+Transformations: 1
+
+Elapsed time: 120 milliseconds
+---------------------------------------------------------------
+forty -> forth -> firth -> fifth -> fifty
+
+Transformations: 4
+
+Elapsed time: 106 milliseconds
+---------------------------------------------------------------
+
+cheat -> chert -> chart -> charm -> chasm -> chase -> cease ->
+lease -> leave -> heave -> helve -> halve -> salve -> solve
+
+Transformations: 13
+
+Elapsed time: 121 milliseconds
+---------------------------------------------------------------
+Could not find a path from worry to happy
+
+Elapsed time: 97 milliseconds
+---------------------------------------------------------------
+smile -> smite -> spite -> spice -> slice -> slick -> click ->
+clock -> crock -> crook -> croon -> crown -> frown
+
+Transformations: 12
+
+Elapsed time: 99 milliseconds
+---------------------------------------------------------------
+small -> shall -> shale -> share -> shard -> chard -> charm ->
+chasm -> chase -> cease -> tease -> terse -> verse -> verge ->
+merge -> marge -> large
+
+Transformations: 16
+
+Elapsed time: 47 milliseconds
+---------------------------------------------------------------
+black -> blank -> blink -> brink -> brine -> trine -> thine ->
+whine -> white
+
+Transformations: 8
+
+Elapsed time: 75 milliseconds
+---------------------------------------------------------------
+Could not find a path from greed to money
+
+Elapsed time: 43 milliseconds
+---------------------------------------------------------------
+\end{verbatim}
+
+\newpage
+
+\subsection*{dijkstra}
+
+\vspace{0.2cm}
+
+\begin{verbatim}
+blare -> blase
+
+Transformations: 1
+Weight: 1
+
+Elapsed time: 131 milliseconds
+---------------------------------------------------------------
+blond -> blood
+
+Transformations: 1
+Weight: 1
+
+Elapsed time: 116 milliseconds
+---------------------------------------------------------------
+allow -> alloy
+
+Transformations: 1
+Weight: 2
+
+Elapsed time: 114 milliseconds
+---------------------------------------------------------------
+cheat -> chert -> chart -> charm -> chasm -> chase -> cease ->
+lease -> leave -> heave -> helve -> halve -> salve -> solve
+
+Transformations: 13
+Weight: 96
+
+Elapsed time: 117 milliseconds
+---------------------------------------------------------------
+Could not find a path from worry to happy
+
+Elapsed time: 82 milliseconds
+---------------------------------------------------------------
+print -> paint
+
+Transformations: 1
+Weight: 17
+
+Elapsed time: 58 milliseconds
+---------------------------------------------------------------
+
+
+
+
+small -> shall -> shale -> share -> shard -> chard -> charm ->
+chasm -> chase -> cease -> tease -> terse -> verse -> verge ->
+merge -> marge -> large
+
+Transformations: 16
+Weight: 118
+
+Elapsed time: 49 milliseconds
+---------------------------------------------------------------
+black -> blank -> blink -> clink -> chink -> think -> thine ->
+whine -> white
+
+Transformations: 8
+Weight: 56
+
+Elapsed time: 45 milliseconds
+---------------------------------------------------------------
+Could not find a path from greed to money
+
+Elapsed time: 41 milliseconds
+---------------------------------------------------------------
+\end{verbatim}
+
+\end{document}

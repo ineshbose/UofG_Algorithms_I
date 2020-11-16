@@ -87,7 +87,7 @@ public class Main {
 			System.out.print(dictionary.get(v.getIndex()) + ((path.indexOf(v) < transformations) ? " -> " : "\n"));
 		}
 
-		System.out.println((!path.isEmpty() ? "\nTotal " + transformations + " transformations taken." : "Could not find a path from " + word1 + " to " + word2));
+		System.out.println((!path.isEmpty() ? "\nTransformations: " + transformations : "Could not find a path from " + word1 + " to " + word2));
 
 		long end = System.currentTimeMillis();
 		System.out.println("\nElapsed time: " + (end - start) + " milliseconds");
